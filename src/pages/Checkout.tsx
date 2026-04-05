@@ -226,9 +226,9 @@ export default function Checkout() {
                   </p>
                   
                   <div className="mt-4 bg-white p-4 rounded border border-blue-200 text-sm space-y-2">
-                    <div className="flex justify-between"><span className="text-gray-500">Bank Name:</span> <span className="font-bold">Zenith Bank</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Account Name:</span> <span className="font-bold">Somic's Jersey Store</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Account Number:</span> <span className="font-bold tracking-wider">1012345678</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Bank Name:</span> <span className="font-bold">Opay Bank</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Account Name:</span> <span className="font-bold">Chisom Bethel Ukoha</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Account Number:</span> <span className="font-bold tracking-wider">7043212231</span></div>
                   </div>
                 </div>
               </div>
