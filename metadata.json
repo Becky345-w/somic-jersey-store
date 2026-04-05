@@ -1,0 +1,5 @@
+{
+  "name": "Somic's Jersey Store",
+  "description": "E-commerce website for Somic's Jersey Store with admin panel and Supabase integration.",
+  "requestFramePermissions": []
+}
