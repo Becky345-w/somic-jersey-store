@@ -674,18 +674,7 @@ export default function Admin() {
       }
 
       // Let's simplify: upload all imageFiles and then replace blobs in imagePreviews with the new URLs.
-      const uploadPromises = imageFiles.map(async (file) => {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `jerseys/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('products')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
+      const uploadPromises = 
 const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
