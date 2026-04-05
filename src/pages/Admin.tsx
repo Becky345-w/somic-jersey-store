@@ -271,8 +271,10 @@ export default function Admin() {
       
       // Update state
       setStoreProducts(prev => prev.filter(p => p.id !== id));
-    } catch (err) {
+      toast.success('Product deleted successfully');
+    } catch (err: any) {
       console.error('Error deleting product:', err);
+      toast.error(err.message || 'Failed to delete product');
     }
   };
 
@@ -684,25 +686,87 @@ export default function Admin() {
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (imagePreviews.length === 0) {
+      setError('Please select at least one image for the jersey');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      if (!supabase) {
+        // Local fallback
+        const mainImageUrl = imagePreviews[0];
+        const additionalImages = imagePreviews.slice(1);
+        
+        const productData = {
+          id: editingProduct ? editingProduct.id : Date.now().toString(),
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          category: formData.category,
+          season: formData.season,
+          sizes: formData.sizes.split(',').map(s => s.trim()).filter(Boolean),
+          colors: formData.colors.split(',').map(c => c.trim()).filter(Boolean),
+          in_stock: formData.in_stock,
+          image_url: mainImageUrl,
+          additional_images: additionalImages.length > 0 ? additionalImages : undefined,
+          created_at: editingProduct ? editingProduct.created_at : new Date().toISOString()
+        };
+        
+        if (editingProduct) {
+          setStoreProducts(prev => prev.map(p => p.id === editingProduct.id ? productData : p));
+          toast.success('Product updated locally!');
+        } else {
+          setStoreProducts([productData, ...storeProducts]);
+          toast.success('Product added locally!');
+        }
+        
+        setFormData({
+          name: '',
+          description: '',
+          price: '',
+          category: categories[0]?.name || '',
+          season: '',
+          sizes: 'S, M, L, XL, XXL',
+          colors: 'Standard',
+          in_stock: true,
+        });
+        setImageFiles([]);
+        setImagePreviews([]);
+        setEditingProduct(null);
+        setLoading(false);
+        return;
+      }
+
+      // 1. Upload new images
+      const existingUrls = imagePreviews.filter(p => !p.startsWith('blob:'));
+      const newFiles = imageFiles;
+
+      const uploadPromises = newFiles.map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `jerseys/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('products')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
           .from('products')
           .getPublicUrl(filePath);
           
-        return { file, publicUrl };
+        return publicUrl;
       });
 
-      const uploadedResults = await Promise.all(uploadPromises);
-      
-      // Now replace blobs in imagePreviews with the new publicUrls
-      let uploadedIdx = 0;
-      const finalUrls = imagePreviews.map(preview => {
-        if (preview.startsWith('blob:')) {
-          return uploadedResults[uploadedIdx++].publicUrl;
-        }
-        return preview;
-      });
-
-      const mainImageUrl = finalUrls[0];
-      const additionalImages = finalUrls.slice(1);
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const finalImageUrls = [...existingUrls, ...uploadedUrls];
 
       // 2. Insert or Update product in database
       const productPayload = {
@@ -714,8 +778,8 @@ export default function Admin() {
         sizes: formData.sizes.split(',').map(s => s.trim()).filter(Boolean),
         colors: formData.colors.split(',').map(c => c.trim()).filter(Boolean),
         in_stock: formData.in_stock,
-        image_url: mainImageUrl,
-        additional_images: additionalImages.length > 0 ? additionalImages : null,
+        image_url: finalImageUrls[0],
+        additional_images: finalImageUrls.slice(1).length > 0 ? finalImageUrls.slice(1) : null,
       };
 
       if (editingProduct) {
